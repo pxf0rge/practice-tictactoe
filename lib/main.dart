@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:tictatctoe/constants/boxes.dart';
+import 'package:tictatctoe/constants/theme.dart';
 import 'package:tictatctoe/data/gameLog.dart';
 import 'package:tictatctoe/pages/home.dart';
 
 void main(List<String> args) async {
-  runApp(Application());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   await Hive.initFlutter();
   Hive.registerAdapter(GamelogAdapter());
-  myBox = await Hive.openBox("settings"); // Box for game settings.
-  games = await Hive.openBox("games"); // Box for games log and history.
+  myBox = await Hive.openBox("settings");
+  games = await Hive.openBox("games");
+  runApp(Application());
 }
 
 class Application extends StatelessWidget {
@@ -19,9 +23,8 @@ class Application extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: _firstPage(),
+      theme: AppTheme.dark,
+      home: const HomePage(),
     );
   }
-
-  Widget _firstPage() => HomePage();
 }

@@ -1,132 +1,153 @@
 import 'package:flutter/material.dart';
 import 'package:tictatctoe/constants/colors.dart';
 import 'package:tictatctoe/constants/functions/navigator.dart';
+import 'package:tictatctoe/constants/theme.dart';
 import 'package:tictatctoe/pages/game.dart';
 import 'package:tictatctoe/pages/leaderBoard.dart';
 import 'package:tictatctoe/pages/settings.dart';
+import 'package:tictatctoe/widgets/game_button.dart';
+import 'package:tictatctoe/widgets/game_panel.dart';
+import 'package:tictatctoe/widgets/game_scaffold.dart';
 
 class GameModePage extends StatelessWidget {
   GameModePage({super.key});
-  // 0 [Player vs Player] and 1 [Ai vs Player]
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _getBar(context),
-      backgroundColor: Colors.white,
-      body: SafeArea(child: _getGameModeBody(context)),
-    );
-  }
-
-  Widget _getGameModeBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 55),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+    return GameScaffold(
+      appBar: AppBar(
+        title: const Text('ARENA'),
+        actions: [
+          IconButton(
+            tooltip: 'Settings',
+            onPressed: () => Nav().gotoPage(const SettingsPage(), context),
+            icon: const Icon(Icons.tune_rounded),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Choose your battle',
+              style: AppTheme.display.copyWith(fontSize: 24)),
+          const SizedBox(height: 6),
           Text(
-            "Choose Game Mode",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 25,
-            ),
+            'One board. Two marks. No mercy.',
+            style: AppTheme.muted.copyWith(fontSize: 15),
           ),
-          SizedBox(height: 15, width: double.infinity),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 45),
-              backgroundColor: AppColors.purple,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () {
-              Nav().gotoPage(GamePage(gameType: 1, isAiMode: true), context);
-            },
-            child: Text(
-              "Play vs AI",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          SizedBox(height: 15),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 45),
-              backgroundColor: AppColors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () {
+          const SizedBox(height: 28),
+          _ModeCard(
+            title: 'VS AI',
+            subtitle: 'Challenge the machine',
+            icon: Icons.smart_toy_outlined,
+            accent: AppColors.purple,
+            onTap: () {
               Nav().gotoPage(
-                GamePage(gameType: 0, isAiMode: false),
+                const GamePage(gameType: 1, isAiMode: true),
                 context,
               );
             },
-            child: Text(
-              "Play vs Friend",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
           ),
-          SizedBox(height: 15),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              minimumSize: Size(double.infinity, 45),
-              backgroundColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(color: Colors.grey[400]!, width: 2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () {
-              Nav().gotoPage(LeaderboardPage(), context);
+          const SizedBox(height: 14),
+          _ModeCard(
+            title: 'VS FRIEND',
+            subtitle: 'Pass & play locally',
+            icon: Icons.groups_2_outlined,
+            accent: AppColors.blue,
+            onTap: () {
+              Nav().gotoPage(
+                const GamePage(gameType: 0, isAiMode: false),
+                context,
+              );
             },
-            child: Text(
-              "Leaderboard",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: AppColors.grey,
-              ),
-            ),
+          ),
+          const Spacer(),
+          GameButton(
+            label: 'Match History',
+            variant: GameButtonVariant.ghost,
+            icon: Icons.history_rounded,
+            onPressed: () => Nav().gotoPage(LeaderboardPage(), context),
           ),
         ],
       ),
     );
   }
+}
 
-  AppBar _getBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: Text(
-        "Game Type",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
+class _ModeCard extends StatefulWidget {
+  const _ModeCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  State<_ModeCard> createState() => _ModeCardState();
+}
+
+class _ModeCardState extends State<_ModeCard> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.98 : 1,
+        duration: const Duration(milliseconds: 120),
+        child: GamePanel(
+          borderColor: widget.accent.withValues(alpha: 0.35),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: widget.accent.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(widget.icon, color: widget.accent, size: 26),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: AppTheme.title.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.subtitle,
+                      style: AppTheme.muted.copyWith(fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: AppColors.lightGrey,
+              ),
+            ],
+          ),
         ),
       ),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          onPressed: () {
-            Nav().gotoPage(SettingsPage(), context);
-          },
-          icon: Icon(
-            Icons.settings,
-            color: AppColors.grey,
-          ),
-        )
-      ],
     );
   }
 }
